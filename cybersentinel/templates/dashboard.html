@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_heading %}
+<h1>Security Overview</h1>
+<p class="subtitle">Welcome, {{ user.email }} – your environment at a glance.</p>
+{% endblock %}
+
+{% block content %}
+<div class="grid-4">
+    <div class="stat-card accent">
+        <h3>Total Scans</h3>
+        <p class="stat-number">{{ total_scans }}</p>
+        <p class="stat-label">Executed from this account</p>
+    </div>
+    <div class="stat-card warning">
+        <h3>Total Vulnerabilities</h3>
+        <p class="stat-number">{{ total_vulns }}</p>
+        <p class="stat-label">Across all scans</p>
+    </div>
+    <div class="stat-card high">
+        <h3>High Risk</h3>
+        <p class="stat-number">{{ high_count }}</p>
+        <p class="stat-label">Critical exposures</p>
+    </div>
+    <div class="stat-card low">
+        <h3>Medium / Low</h3>
+        <p class="stat-number">{{ medium_count + low_count }}</p>
+        <p class="stat-label">Other findings</p>
+    </div>
+</div>
+
+<div class="grid-2 mt-lg">
+    <div class="panel">
+        <div class="panel-header">
+            <h3>Risk distribution</h3>
+        </div>
+        <canvas id="riskPieChart" height="200"></canvas>
+    </div>
+    <div class="panel">
+        <div class="panel-header">
+            <h3>Quick actions</h3>
+        </div>
+        <div class="quick-actions">
+            <a href="{{ url_for('start_scan') }}" class="btn btn-primary">Start New Scan</a>
+            <a href="{{ url_for('reports') }}" class="btn btn-outline">View Reports</a>
+        </div>
+        <p class="muted small-text mt-md">
+            Launch a simulated Web Application or Network scan. CyberSentinel will automatically generate
+            realistic vulnerability findings and a professional PDF report for your documentation and viva.
+        </p>
+    </div>
+</div>
+
+<div class="panel mt-lg">
+    <div class="panel-header">
+        <h3>Recent scans</h3>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Target</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Vulnerabilities</th>
+                <th>Risk</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if recent_scans %}
+                {% for scan in recent_scans %}
+                    <tr>
+                        <td>#{{ scan.id }}</td>
+                        <td>{{ scan.target }}</td>
+                        <td>{{ scan.scan_type }}</td>
+                        <td>{{ scan.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ scan.total_vulns }}</td>
+                        <td>
+                            {% if scan.high_count > 0 %}
+                                <span class="badge badge-high">High</span>
+                            {% elif scan.medium_count > 0 %}
+                                <span class="badge badge-medium">Medium</span>
+                            {% elif scan.low_count > 0 %}
+                                <span class="badge badge-low">Low</span>
+                            {% else %}
+                                <span class="badge">None</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('scan_results', scan_id=scan.id) }}" class="link">View</a>
+                            <a href="{{ url_for('report_detail', scan_id=scan.id) }}" class="link">Report</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="7" class="muted center">No scans yet. Start your first security scan.</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const riskData = {
+        labels: ['High', 'Medium', 'Low'],
+        datasets: [{
+            data: [{{ high_count }}, {{ medium_count }}, {{ low_count }}],
+            backgroundColor: ['#f97373', '#facc15', '#22c55e'],
+            borderColor: '#020617',
+            borderWidth: 2
+        }]
+    };
+
+    const ctx = document.getElementById('riskPieChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: riskData,
+            options: {
+                plugins: {
+                    legend: {
+                        labels: { color: '#e5e7eb' }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}
+

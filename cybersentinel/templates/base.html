@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CyberSentinel – {% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dark-theme">
+<div class="app-container">
+    {% if session.get('user_id') %}
+    <aside class="sidebar">
+        <div class="logo">
+            <span class="logo-dot"></span>
+            <span>CyberSentinel</span>
+        </div>
+        <nav class="nav-links">
+            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
+            <a href="{{ url_for('start_scan') }}" class="{% if request.endpoint == 'start_scan' %}active{% endif %}">Start Scan</a>
+            <a href="{{ url_for('reports') }}" class="{% if request.endpoint == 'reports' %}active{% endif %}">Reports</a>
+            {% if session.get('is_admin') %}
+            <a href="{{ url_for('admin_panel') }}" class="{% if request.endpoint == 'admin_panel' %}active{% endif %}">Admin Panel</a>
+            {% endif %}
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('logout') }}" class="btn btn-secondary small">Logout</a>
+        </div>
+    </aside>
+    {% endif %}
+
+    <main class="main-content {% if not session.get('user_id') %}no-sidebar{% endif %}">
+        <header class="topbar">
+            <div class="topbar-left">
+                {% block page_heading %}{% endblock %}
+            </div>
+            <div class="topbar-right">
+                {% if session.get('user_id') %}
+                <span class="user-chip">
+                    <span class="status-dot"></span>
+                    {{ session.get('user_email', 'Authenticated User') }}
+                </span>
+                {% endif %}
+            </div>
+        </header>
+
+        <section class="content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div id="toast-container">
+                        {% for category, message in messages %}
+                            <div class="toast toast-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </section>
+    </main>
+</div>
+
+<div id="global-loader" class="loader-overlay hidden">
+    <div class="loader-spinner"></div>
+    <p>Scanning in progress...</p>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
+

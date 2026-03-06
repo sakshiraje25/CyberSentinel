@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel{% endblock %}
+{% block page_heading %}
+<h1>Admin Panel</h1>
+<p class="subtitle">Manage users and scan reports.</p>
+{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+    <div class="panel">
+        <div class="panel-header">
+            <h3>Users</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="table small">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Created</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for u in users %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>{% if u.is_admin %}<span class="badge badge-high">Admin</span>{% else %}User{% endif %}</td>
+                        <td>{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-header">
+            <h3>All scan reports</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="table small">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Target</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Vulns</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for scan in scans %}
+                    <tr>
+                        <td>{{ scan.id }}</td>
+                        <td>{{ scan.user.email }}</td>
+                        <td>{{ scan.target }}</td>
+                        <td>{{ scan.scan_type }}</td>
+                        <td>{{ scan.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ scan.total_vulns }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('admin_delete_scan', scan_id=scan.id) }}" onsubmit="return confirm('Delete this scan and all associated vulnerabilities?');">
+                                <button type="submit" class="btn btn-danger small">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

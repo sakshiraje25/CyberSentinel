@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Scan Results{% endblock %}
+{% block page_heading %}
+<h1>Scan Results</h1>
+<p class="subtitle">Target: {{ scan.target }} • {{ scan.scan_type }} • {{ scan.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+{% endblock %}
+
+{% block content %}
+<div class="grid-3">
+    <div class="stat-card accent">
+        <h3>Total Vulnerabilities</h3>
+        <p class="stat-number">{{ scan.total_vulns }}</p>
+    </div>
+    <div class="stat-card high">
+        <h3>High</h3>
+        <p class="stat-number">{{ scan.high_count }}</p>
+    </div>
+    <div class="stat-card warning">
+        <h3>Medium / Low</h3>
+        <p class="stat-number">{{ scan.medium_count + scan.low_count }}</p>
+    </div>
+</div>
+
+<div class="grid-2 mt-lg">
+    <div class="panel">
+        <div class="panel-header">
+            <h3>Severity breakdown</h3>
+        </div>
+        <canvas id="scanPieChart" height="200"></canvas>
+    </div>
+    <div class="panel">
+        <div class="panel-header">
+            <h3>Progress</h3>
+        </div>
+        <div class="progress-group">
+            <label>High</label>
+            <div class="progress-bar">
+                <div class="progress-fill high" style="width: {% if scan.total_vulns %}{{ (scan.high_count / scan.total_vulns * 100)|round(0) }}{% else %}0{% endif %}%"></div>
+            </div>
+            <label>Medium</label>
+            <div class="progress-bar">
+                <div class="progress-fill warning" style="width: {% if scan.total_vulns %}{{ (scan.medium_count / scan.total_vulns * 100)|round(0) }}{% else %}0{% endif %}%"></div>
+            </div>
+            <label>Low</label>
+            <div class="progress-bar">
+                <div class="progress-fill low" style="width: {% if scan.total_vulns %}{{ (scan.low_count / scan.total_vulns * 100)|round(0) }}{% else %}0{% endif %}%"></div>
+            </div>
+        </div>
+        <div class="mt-md">
+            <a href="{{ url_for('report_detail', scan_id=scan.id) }}" class="btn btn-outline">View Detailed Report</a>
+        </div>
+    </div>
+</div>
+
+<div class="panel mt-lg">
+    <div class="panel-header">
+        <h3>Vulnerability details</h3>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Severity</th>
+                <th>Description</th>
+                <th>Recommendation</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for v in vulnerabilities %}
+                <tr>
+                    <td>{{ v.name }}</td>
+                    <td>
+                        {% if v.severity == 'High' %}
+                            <span class="badge badge-high">High</span>
+                        {% elif v.severity == 'Medium' %}
+                            <span class="badge badge-medium">Medium</span>
+                        {% else %}
+                            <span class="badge badge-low">Low</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ v.description }}</td>
+                    <td>{{ v.recommendation }}</td>
+                    <td>{{ v.status }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const scanPieData = {
+        labels: ['High', 'Medium', 'Low'],
+        datasets: [{
+            data: [{{ scan.high_count }}, {{ scan.medium_count }}, {{ scan.low_count }}],
+            backgroundColor: ['#f97373', '#facc15', '#22c55e'],
+            borderColor: '#020617',
+            borderWidth: 2
+        }]
+    };
+    const ctx2 = document.getElementById('scanPieChart');
+    if (ctx2) {
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: scanPieData,
+            options: {
+                plugins: {
+                    legend: {
+                        labels: { color: '#e5e7eb' }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}
+

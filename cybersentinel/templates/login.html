@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block page_heading %}
+<h1>Welcome to CyberSentinel</h1>
+<p class="subtitle">Automated Vulnerability Scanner &amp; Security Report Generator</p>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card glass-panel">
+        <h2>Sign in</h2>
+        <p class="muted">Enter your credentials to access the security dashboard.</p>
+        <form method="post" class="form-grid">
+            <label>
+                Email
+                <input type="email" name="email" required placeholder="you@example.com">
+            </label>
+            <label>
+                Password
+                <input type="password" name="password" required placeholder="••••••••">
+            </label>
+            <button type="submit" class="btn btn-primary full-width">Login</button>
+        </form>
+        <p class="muted small-text">
+            New here?
+            <a href="{{ url_for('register') }}">Create an account</a>
+        </p>
+        <div class="info-box small-text">
+            <p><strong>Demo Admin:</strong> admin@cybersentinel.local / Admin@123</p>
+        </div>
+    </div>
+    <div class="auth-side-panel">
+        <div class="code-rain"></div>
+        <div class="auth-text">
+            <h2>Real-time security visibility</h2>
+            <p>Simulated vulnerability scanning, risk scoring and professional PDF reporting – ideal for final year projects and portfolio demos.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

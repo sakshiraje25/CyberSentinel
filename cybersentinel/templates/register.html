@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block page_heading %}
+<h1>Create your CyberSentinel account</h1>
+<p class="subtitle">Securely manage your automated vulnerability scans.</p>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card glass-panel">
+        <h2>Sign up</h2>
+        <form method="post" class="form-grid">
+            <label>
+                Email
+                <input type="email" name="email" required placeholder="you@example.com">
+            </label>
+            <label>
+                Password
+                <input type="password" name="password" required minlength="6" placeholder="Choose a strong password">
+            </label>
+            <label>
+                Admin Code (optional)
+                <input type="text" name="admin_code" placeholder="Enter admin code if provided">
+            </label>
+            <button type="submit" class="btn btn-primary full-width">Create account</button>
+        </form>
+        <p class="muted small-text">
+            Already registered?
+            <a href="{{ url_for('login') }}">Login instead</a>
+        </p>
+    </div>
+    <div class="auth-side-panel">
+        <div class="code-rain"></div>
+        <div class="auth-text">
+            <h2>Role-based access</h2>
+            <p>Use the admin code to unlock the admin panel for managing users and reports.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block page_heading %}
+<h1>Reports</h1>
+<p class="subtitle">Downloadable history of your completed scans.</p>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+    <div class="panel-header">
+        <h3>Scan history</h3>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Target</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Vulnerabilities</th>
+                <th>Severity</th>
+                <th>Downloads</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if scans %}
+                {% for scan in scans %}
+                    <tr>
+                        <td>#{{ scan.id }}</td>
+                        <td>{{ scan.target }}</td>
+                        <td>{{ scan.scan_type }}</td>
+                        <td>{{ scan.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ scan.total_vulns }}</td>
+                        <td>
+                            {% if scan.high_count > 0 %}
+                                <span class="badge badge-high">High</span>
+                            {% elif scan.medium_count > 0 %}
+                                <span class="badge badge-medium">Medium</span>
+                            {% elif scan.low_count > 0 %}
+                                <span class="badge badge-low">Low</span>
+                            {% else %}
+                                <span class="badge">None</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('download_pdf', scan_id=scan.id) }}" class="link">PDF</a>
+                            <a href="{{ url_for('download_html', scan_id=scan.id) }}" class="link">HTML</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="7" class="muted center">No reports generated yet.</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

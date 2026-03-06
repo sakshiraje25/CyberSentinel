@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Start Scan{% endblock %}
+{% block page_heading %}
+<h1>Start New Security Scan</h1>
+<p class="subtitle">Simulate a targeted assessment of your web application or network.</p>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+    <div class="panel-header">
+        <h3>Scan configuration</h3>
+    </div>
+    <form method="post" class="form-grid" onsubmit="showGlobalLoader()">
+        <label class="full-width">
+            Target URL or IP address
+            <input type="text" name="target" required placeholder="https://example.com or 192.168.1.1">
+        </label>
+        <label>
+            Scan type
+            <select name="scan_type">
+                <option value="Web App Scan">Web App Scan</option>
+                <option value="Network Scan">Network Scan</option>
+            </select>
+        </label>
+        <label class="checkbox-label full-width">
+            <input type="checkbox" name="permission" value="yes" required>
+            <span>I confirm I have permission to scan this target.</span>
+        </label>
+        <div class="full-width">
+            <button type="submit" class="btn btn-primary">
+                Start Security Scan
+            </button>
+        </div>
+    </form>
+    <p class="muted small-text mt-md">
+        Note: This is a simulated scanner intended for academic demonstration. No real network traffic is generated.
+        The backend generates realistic vulnerability data to power your dashboard and reports.
+    </p>
+</div>
+{% endblock %}
+
