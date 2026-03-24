@@ -21,9 +21,11 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+import nmap
 
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+print("DATABASE PATH:", os.path.join(BASE_DIR, "database", "cybersentinel.db"))
 
 app = Flask(__name__)
 # MongoDB connection
@@ -249,8 +251,13 @@ def start_scan():
         )
         db.session.add(scan)
         db.session.flush()  # assign id
-
-        simulated_vulns = generate_simulated_vulnerabilities(scan_type)
+        
+        if scan_type == "Network Scan":
+            simulated_vulns = real_network_scan(target)
+        elif scan_type == "Web App Scan":
+            simulated_vulns = real_web_scan(target)
+        else:
+            simulated_vulns = generate_simulated_vulnerabilities(scan_type)
         high = medium = low = 0
 
         for vuln in simulated_vulns:
@@ -289,6 +296,101 @@ def start_scan():
 
     return render_template("start_scan.html")
 
+
+def real_network_scan(target):
+    print("Running REAL Nmap scan on:", target)
+
+    scanner = nmap.PortScanner()
+
+    # fast + reliable scan
+    scanner.scan(hosts=target, arguments="-sS -T4 -F")
+
+    vulnerabilities = []
+
+    for host in scanner.all_hosts():
+        for proto in scanner[host].all_protocols():
+            ports = scanner[host][proto].keys()
+
+            for port in ports:
+                service = scanner[host][proto][port]['name']
+                state = scanner[host][proto][port]['state']
+
+                if state == "open":
+                    vulnerabilities.append({
+                        "name": f"Open Port {port}",
+                        "severity": "Low",
+                        "description": f"Port {port} running {service} service is open.",
+                        "recommendation": "Close unused ports or restrict them with firewall."
+                    })
+
+    return vulnerabilities
+
+import requests
+
+def real_web_scan(url):
+    print("Running REAL WEB SCAN on:", url)
+
+    # 🔥 IMPORTANT FIX
+    if not url.startswith("http"):
+        url = "http://" + url
+
+    vulnerabilities = []
+
+    try:
+        response = requests.get(url, timeout=5)
+        headers = response.headers
+
+        # 🔐 Security Headers Check
+        if "Content-Security-Policy" not in headers:
+            vulnerabilities.append({
+                "name": "Missing Content Security Policy (CSP)",
+                "severity": "Medium",
+                "description": "CSP header is not set, making site vulnerable to XSS attacks.",
+                "recommendation": "Implement Content-Security-Policy header."
+            })
+
+        if "X-Frame-Options" not in headers:
+            vulnerabilities.append({
+                "name": "Missing X-Frame-Options",
+                "severity": "Medium",
+                "description": "Website can be embedded in iframe (Clickjacking risk).",
+                "recommendation": "Set X-Frame-Options to SAMEORIGIN or DENY."
+            })
+
+        if "Strict-Transport-Security" not in headers:
+            vulnerabilities.append({
+                "name": "Missing HSTS Header",
+                "severity": "Low",
+                "description": "No HSTS header found.",
+                "recommendation": "Enable Strict-Transport-Security."
+            })
+
+        if "Server" in headers:
+            vulnerabilities.append({
+                "name": "Server Information Exposure",
+                "severity": "Low",
+                "description": f"Server reveals: {headers['Server']}",
+                "recommendation": "Hide or mask server details."
+            })
+
+        # ✅ If no issues found
+        if not vulnerabilities:
+            vulnerabilities.append({
+                "name": "No Major Issues Detected",
+                "severity": "Low",
+                "description": "Basic scan did not find major issues.",
+                "recommendation": "Perform deeper security testing."
+            })
+
+    except Exception as e:
+        vulnerabilities.append({
+            "name": "Website Not Reachable",
+            "severity": "High",
+            "description": str(e),
+            "recommendation": "Check if the website is live and accessible."
+        })
+
+    return vulnerabilities
 
 def generate_simulated_vulnerabilities(scan_type: str):
     base_vulns = [
